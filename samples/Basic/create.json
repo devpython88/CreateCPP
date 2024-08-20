@@ -1,0 +1,8 @@
+// Make sure to remove the comments
+// Build the app with the command `createcpp -b .`
+// Make sure youre in this directory
+
+{
+	"project": "MyApp",
+	"root": "." // needed for auto source and library detection
+}

@@ -1,0 +1,10 @@
+// Make sure to remove the comments
+// Build the app with the command `createcpp -b .`
+// Make sure youre in this directory
+
+{
+	"project": "MyApp",
+	"root": "." // needed for auto source and library detection,
+	"sources": ["main.cpp"],
+	"libraries": ["SDL2", "qt5widgets", "qt5core", "qt5gui", "gtk3", "gtkmm"]
+}
