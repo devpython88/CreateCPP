@@ -1,14 +1,8 @@
 {
     "project": "createcpp",
     "exe": "createcpp",
-    "sources": [
-        "../src/main.cpp",
-        "../src/createcpp.h",
-        "../src/createcpp.cpp"
-    ],
-    "libraries": [
-        "qt5core"
-    ],
+    "sources": ["../src/main.cpp", "../src/createcpp.h", "../src/createcpp.cpp"],
+    "libraries": ["qt5core"],
     "cppstd": 23,
     "cleanBuild": true
 }

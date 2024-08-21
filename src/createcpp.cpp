@@ -37,6 +37,8 @@ void doLibraryThing(QString *command, std::string lib)
             askToInstallPackage(lib);
         }
 
+        if (command->contains("`pkg-config --cflags --libs gtkmm-3.0`")) return; // skip if already linked
+
         QString text("`pkg-config --cflags --libs gtkmm-3.0`");
         text.append(" ");
         command->append(text);
@@ -50,6 +52,8 @@ void doLibraryThing(QString *command, std::string lib)
             askToInstallPackage(lib);
         }
 
+        if (command->contains("`pkg-config --cflags --libs gtk+-3.0`")) return; // skip if already linked
+
         QString text("`pkg-config --cflags --libs gtk+-3.0` ");
         command->append(text);
         return;
@@ -61,6 +65,8 @@ void doLibraryThing(QString *command, std::string lib)
         {
             askToInstallPackage(lib);
         }
+
+        if (command->contains("`pkg-config --cflags --libs gtk+-4.0`")) return; // skip if already linked
 
         QString text("`pkg-config --cflags --libs gtk+-4.0` ");
         command->append(text);
@@ -74,7 +80,12 @@ void doLibraryThing(QString *command, std::string lib)
             askToInstallPackage(lib);
         }
 
-        QString text("`pkg-config --cflags --libs Qt5Widgets` -fPIC ");
+        if (command->contains("`pkg-config --cflags --libs Qt5Widgets`")) return; // skip if already linked
+
+        QString text("`pkg-config --cflags --libs Qt5Widgets` ");
+
+        if (!command->contains("-fPIC")) text.append(" -fPIC ");
+
         command->append(text);
         return;
     }
@@ -86,7 +97,12 @@ void doLibraryThing(QString *command, std::string lib)
             askToInstallPackage(lib);
         }
 
-        QString text("`pkg-config --cflags --libs Qt5Core` -fPIC ");
+        if (command->contains("`pkg-config --cflags --libs Qt5Core`")) return; // skip if already linked
+
+        QString text("`pkg-config --cflags --libs Qt5Core` ");
+        
+        if (!command->contains("-fPIC")) text.append(" -fPIC ");
+        
         command->append(text);
         return;
     }
@@ -98,14 +114,20 @@ void doLibraryThing(QString *command, std::string lib)
             askToInstallPackage(lib);
         }
 
-        QString text("`pkg-config --cflags --libs Qt5Gui` -fPIC ");
+        if (command->contains("`pkg-config --cflags --libs Qt5Gui`")) return; // skip if already linked
+
+        QString text("`pkg-config --cflags --libs Qt5Gui` ");
+        
+        if (!command->contains("-fPIC")) text.append(" -fPIC ");
+        
         command->append(text);
         return;
     }
 
-    QString text("-l");
-    text.append(QString::fromStdString(lib));
-    text.append(" ");
+    QString text = QString("-l%1 ").arg(QString::fromStdString(lib));
+
+    if (command->contains(text)) return;
+
     command->append(text);
 }
 
@@ -280,35 +302,46 @@ std::vector<std::string> scanForSourceFilesInDir(std::string dir)
 std::vector<std::string> scanForSourceFiles(std::string root)
 {
     std::vector<std::string> files;
-    if (fs::exists(root + "src"))
-    {
-        std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "src");
-        for (std::string newFile : newFiles)
-            files.push_back(newFile);
-    }
-    if (fs::exists(root + "sources"))
-    {
-        std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "sources");
-        for (std::string newFile : newFiles)
-            files.push_back(newFile);
-    }
-    if (fs::exists(root + "include"))
-    {
-        std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "include");
-        for (std::string newFile : newFiles)
-            files.push_back(newFile);
-    }
-    if (fs::exists(root + "lib"))
-    {
-        std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "lib");
-        for (std::string newFile : newFiles)
-            files.push_back(newFile);
-    }
-    if (fs::exists(root))
-    {
-        std::vector<std::string> newFiles = scanForSourceFilesInDir(root);
-        for (std::string newFile : newFiles)
-            files.push_back(newFile);
+    // if (fs::exists(root + "src"))
+    // {
+    //     std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "src");
+    //     for (std::string newFile : newFiles)
+    //         files.push_back(newFile);
+    // }
+    // if (fs::exists(root + "sources"))
+    // {
+    //     std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "sources");
+    //     for (std::string newFile : newFiles)
+    //         files.push_back(newFile);
+    // }
+    // if (fs::exists(root + "include"))
+    // {
+    //     std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "include");
+    //     for (std::string newFile : newFiles)
+    //         files.push_back(newFile);
+    // }
+    // if (fs::exists(root + "lib"))
+    // {
+    //     std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "lib");
+    //     for (std::string newFile : newFiles)
+    //         files.push_back(newFile);
+    // }
+    // if (fs::exists(root))
+    // {
+    //     std::vector<std::string> newFiles = scanForSourceFilesInDir(root);
+    //     for (std::string newFile : newFiles)
+    //         files.push_back(newFile);
+    // }
+
+    for (const auto& file : fs::recursive_directory_iterator(root)){
+        fs::path filePath = file.path();
+
+        QString qPath = QString::fromStdString(filePath);
+        if (!qPath.endsWith(".c") && !qPath.endsWith(".cpp") && !qPath.endsWith(".h") && !qPath.endsWith(".hpp")){
+            continue;
+        }
+
+        files.push_back(filePath);
     }
 
     return files;
@@ -562,6 +595,7 @@ int build(QString fileName)
     
     // execute
     int result = std::system(command.toStdString().c_str());
+    
     if (result != 0)
     {
         std::cout << errorColor + "Building completed with errors.\033[0m\n";

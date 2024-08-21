@@ -5,7 +5,7 @@
 
 namespace fs = std::filesystem;
 
-std::string VERSION = "v2.3_beta-2";
+std::string VERSION = "CreateC++ v1.0 pre-release 2";
 
 int main(int argc, char const *argv[])
 {
@@ -20,7 +20,7 @@ int main(int argc, char const *argv[])
     // if the user is checking the version
     if (arg == "-v" || arg == "-V" || arg == "--version" || arg == "-version" || arg == "--v")
     {
-        std::cout << "CreateC " << VERSION << std::endl;
+        std::cout << VERSION << std::endl;
         return 0;
     }
 
