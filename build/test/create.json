@@ -1,4 +1,5 @@
 {
-    "project": "test",
-    "root": "."
+    "cppstd": 17,
+    "project": "hemm",
+    "root": "./"
 }

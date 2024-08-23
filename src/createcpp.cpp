@@ -299,40 +299,10 @@ std::vector<std::string> scanForSourceFilesInDir(std::string dir)
     return files;
 }
 
-std::vector<std::string> scanForSourceFiles(std::string root)
+std::vector<std::string> scanForSourceFiles(std::string root, json foldersNotToScan)
 {
     std::vector<std::string> files;
-    // if (fs::exists(root + "src"))
-    // {
-    //     std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "src");
-    //     for (std::string newFile : newFiles)
-    //         files.push_back(newFile);
-    // }
-    // if (fs::exists(root + "sources"))
-    // {
-    //     std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "sources");
-    //     for (std::string newFile : newFiles)
-    //         files.push_back(newFile);
-    // }
-    // if (fs::exists(root + "include"))
-    // {
-    //     std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "include");
-    //     for (std::string newFile : newFiles)
-    //         files.push_back(newFile);
-    // }
-    // if (fs::exists(root + "lib"))
-    // {
-    //     std::vector<std::string> newFiles = scanForSourceFilesInDir(root + "lib");
-    //     for (std::string newFile : newFiles)
-    //         files.push_back(newFile);
-    // }
-    // if (fs::exists(root))
-    // {
-    //     std::vector<std::string> newFiles = scanForSourceFilesInDir(root);
-    //     for (std::string newFile : newFiles)
-    //         files.push_back(newFile);
-    // }
-
+    bool nestedContinue = false;
     for (const auto& file : fs::recursive_directory_iterator(root)){
         fs::path filePath = file.path();
 
@@ -340,6 +310,14 @@ std::vector<std::string> scanForSourceFiles(std::string root)
         if (!qPath.endsWith(".c") && !qPath.endsWith(".cpp") && !qPath.endsWith(".h") && !qPath.endsWith(".hpp")){
             continue;
         }
+        
+        for (auto &folder : foldersNotToScan){
+            if (QString::fromStdString(file.path()).contains(QString::fromStdString(folder))){
+                nestedContinue = true;
+            }
+        }
+
+        if (nestedContinue) continue;
 
         files.push_back(filePath);
     }
@@ -449,7 +427,10 @@ int build(QString fileName)
         cacheFile = loadCacheFile();
     }
 
-    auto sourcefiles = scanForSourceFiles(projectRoot);
+    json foldersThatWontBeScanned;
+    if (j.contains("scanExceptions")) foldersThatWontBeScanned = j["scanExceptions"];
+
+    auto sourcefiles = scanForSourceFiles(projectRoot, foldersThatWontBeScanned);
     json libraries = json::array();
 
     if (j.contains("sources")){
